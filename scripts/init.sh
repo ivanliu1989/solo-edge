@@ -90,6 +90,8 @@ fi
 
 echo
 echo "Done. Next steps:"
+echo "  0. If you haven't already, run $SOLO_EDGE_ROOT/scripts/setup.sh ONCE to install"
+echo "     Claude Code + gstack + superpowers on this machine."
 echo "  1. Edit CLAUDE.md @AGENTS.md include + skill routing rules"
 echo "  2. Edit AGENTS.md to describe THIS project"
 echo "  3. Edit ARCHITECTURE.md to describe THIS project's data flow"
@@ -99,3 +101,4 @@ echo "  6. Merge templates/globals.css, middleware.ts, eslint.config.mjs into yo
 echo "  7. git init && git add . && git commit -m 'chore: bootstrap from solo-edge'"
 echo
 echo "Reference docs are in $SOLO_EDGE_ROOT/docs/ — start with 00-principles.md"
+echo "Daily-routine playbooks are in $SOLO_EDGE_ROOT/playbooks/"

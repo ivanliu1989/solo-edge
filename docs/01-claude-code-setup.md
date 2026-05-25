@@ -1,6 +1,18 @@
 # 01 — Claude Code setup
 
-One-time setup for any solo builder using Claude Code. Do this on the laptop you ship from. Takes ~15 minutes.
+One-time setup for any solo builder using Claude Code. Do this on the laptop you ship from. Takes ~15 minutes manually, ~3 minutes with the script.
+
+## Fast path (recommended)
+
+```bash
+bash scripts/setup.sh
+```
+
+Idempotent — installs Claude Code (if missing), gstack + superpowers, the global safety rules, and the skill scan paths. Supports `--dry-run` to preview, `--skip-claude-code` if you already have CC, `--skip-superpowers` if you only want gstack.
+
+The script does everything the manual sections below describe. Read the rest of this doc if you want to understand what the script did or if you need to do it by hand.
+
+## Manual path (read for understanding)
 
 ## Install Claude Code
 
