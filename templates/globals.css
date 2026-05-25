@@ -1,0 +1,369 @@
+@import "tailwindcss";
+
+/* -----------------------------------------------------------------------
+   leapedge.clip — instrumentation panel
+   Dark by default. Warm near-black canvas, off-white text, electric
+   chartreuse accent reserved for activity + interaction. The vocabulary
+   is "serious AI tooling" — Linear/Bloomberg/Vercel adjacent without
+   landing on any of their cliches.
+   ----------------------------------------------------------------------- */
+
+:root {
+  --canvas: #0a0a09;
+  --canvas-elev: #131312;
+  --canvas-edge: #1a1a18;
+  --canvas-deep: #050504;
+
+  --text: #e8e6e2;
+  --text-soft: #b3b1ab;
+  --text-mute: #7a7872;
+  --text-fade: #4f4d48;
+
+  --line: rgba(232, 230, 226, 0.08);
+  --line-strong: rgba(232, 230, 226, 0.18);
+  --line-bright: rgba(232, 230, 226, 0.32);
+
+  --accent: #c8f441;
+  --accent-deep: #9ec61f;
+  --accent-soft: rgba(200, 244, 65, 0.12);
+  --accent-glow: rgba(200, 244, 65, 0.45);
+
+  --signal-ok: #c8f441;
+  --signal-warn: #f5b942;
+  --signal-err: #ff6259;
+  --signal-info: #6fa8e8;
+
+  --grid-dot: rgba(232, 230, 226, 0.04);
+
+  color-scheme: dark light;
+}
+
+/* === LIGHT-MODE TOKENS — DUPLICATED INTENTIONALLY ===========================
+   Light values appear in TWO blocks below:
+     (A) [data-theme="light"] — explicit user override stamped by the
+         pre-hydration bootstrap script (lib/theme/script.ts) and kept
+         in sync by components/ThemeProvider.tsx
+     (B) @media (prefers-color-scheme: light) :root:not([data-theme]) —
+         system-preference fallback before any explicit choice
+   CSS has no clean way to share the token table because (B) is inside an
+   @media wrapper. Keep both blocks IDENTICAL byte-for-byte; any tweak to
+   --accent in one MUST land in the other or user-chosen-light + OS-
+   preferred-light renders differently. The KEEP-IN-SYNC parity is enforced
+   mechanically by app/globals-light-tokens.test.ts — if you split the
+   blocks, that test fails. =================================================== */
+
+/* (A) Explicit user override — wins over OS preference. */
+[data-theme="light"] {
+  --canvas: #fafaf8;
+  --canvas-elev: #ffffff;
+  --canvas-edge: #efeeea;
+  --canvas-deep: #f3f2ee;
+
+  --text: #0a0a09;
+  --text-soft: #3a3835;
+  --text-mute: #6b6863;
+  --text-fade: #9d9a93;
+
+  --line: rgba(10, 10, 9, 0.08);
+  --line-strong: rgba(10, 10, 9, 0.18);
+  --line-bright: rgba(10, 10, 9, 0.32);
+
+  --accent: #486b08;
+  --accent-deep: #2f4806;
+  --accent-soft: rgba(72, 107, 8, 0.1);
+  --accent-glow: rgba(72, 107, 8, 0.25);
+
+  --signal-ok: #486b08;
+  --signal-warn: #b97a0d;
+  --signal-err: #c8332a;
+  --signal-info: #2c5a8a;
+
+  --grid-dot: rgba(10, 10, 9, 0.04);
+}
+
+/* (B) System-preference fallback — fires only when no explicit
+   data-theme attribute has been written. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --canvas: #fafaf8;
+    --canvas-elev: #ffffff;
+    --canvas-edge: #efeeea;
+    --canvas-deep: #f3f2ee;
+
+    --text: #0a0a09;
+    --text-soft: #3a3835;
+    --text-mute: #6b6863;
+    --text-fade: #9d9a93;
+
+    --line: rgba(10, 10, 9, 0.08);
+    --line-strong: rgba(10, 10, 9, 0.18);
+    --line-bright: rgba(10, 10, 9, 0.32);
+
+    --accent: #486b08;
+    --accent-deep: #2f4806;
+    --accent-soft: rgba(72, 107, 8, 0.1);
+    --accent-glow: rgba(72, 107, 8, 0.25);
+
+    --signal-ok: #486b08;
+    --signal-warn: #b97a0d;
+    --signal-err: #c8332a;
+    --signal-info: #2c5a8a;
+
+    --grid-dot: rgba(10, 10, 9, 0.04);
+  }
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-canvas-elev: var(--canvas-elev);
+  --color-canvas-edge: var(--canvas-edge);
+  --color-canvas-deep: var(--canvas-deep);
+
+  --color-text: var(--text);
+  --color-text-soft: var(--text-soft);
+  --color-text-mute: var(--text-mute);
+  --color-text-fade: var(--text-fade);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-line-bright: var(--line-bright);
+
+  --color-accent: var(--accent);
+  --color-accent-deep: var(--accent-deep);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-glow: var(--accent-glow);
+
+  --color-signal-ok: var(--signal-ok);
+  --color-signal-warn: var(--signal-warn);
+  --color-signal-err: var(--signal-err);
+  --color-signal-info: var(--signal-info);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+/* -----------------------------------------------------------------------
+   Base. The canvas is warm near-black; text is warm off-white. Geist Sans
+   is the workhorse, Geist Mono carries technical metadata.
+   ----------------------------------------------------------------------- */
+html {
+  background: var(--canvas);
+  color: var(--text);
+}
+
+body {
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11", "cv01", "kern";
+  font-variant-numeric: tabular-nums;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.005em;
+}
+
+/* Subtle dotted grid backdrop — instrumentation feel. 16px pitch, near
+   invisible; reads as texture, not decoration. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    var(--grid-dot) 1px,
+    transparent 0
+  );
+  background-size: 16px 16px;
+}
+
+main {
+  position: relative;
+  z-index: 1;
+}
+
+/* -----------------------------------------------------------------------
+   Primitives
+   ----------------------------------------------------------------------- */
+
+/* .label — small uppercase metadata label, used for section headers,
+   gutter callouts, and ticker chip labels. */
+.label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+
+/* When .label is used on a real heading element (h2 / h3), bump the
+   visual weight so the heading is more visibly heading-shaped without
+   abandoning the terminal eyebrow aesthetic. Closes the H1↔H2 size
+   chasm flagged by design-audit H2 (10.88px → ~12.5px / weight 500).
+   Pure h2/h3 usage gets the bump; the non-heading uses (gutter callouts,
+   chip labels) keep the smaller weight via the base .label rule. */
+h2.label,
+h3.label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
+/* .terminal — monospaced metadata text (timestamps, ids, percentages). */
+.terminal {
+  font-family: var(--font-mono);
+  font-feature-settings: "ss01", "kern", "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+/* .display — the big sans, slightly tightened. */
+.display {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+/* .signal — the activity indicator dot. Use with a tone modifier
+   (text-signal-ok / -warn / -err / -info / text-text-mute for idle). */
+.signal {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.signal-ring {
+  position: relative;
+}
+
+.signal-ring::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  border: 1px solid currentColor;
+  opacity: 0;
+  animation: signal-ring 1.8s ease-out infinite;
+}
+
+@keyframes signal-ring {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@keyframes signal-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.signal-pulse {
+  animation: signal-pulse 1.8s ease-in-out infinite;
+}
+
+/* .ring-accent — focus / active outline using the accent glow. */
+.ring-accent {
+  box-shadow: 0 0 0 1px var(--accent), 0 0 0 4px var(--accent-soft);
+}
+
+/* -----------------------------------------------------------------------
+   Global focus-visible — keyboard-only ring on interactive elements.
+   Tailwind's preflight strips the browser default `outline` on
+   :focus, which kills the keyboard-nav affordance for tab users.
+   Scoped to buttons + links (inputs handle their own focus styling
+   via component classes like SignInForm Field's
+   `focus:shadow-[0_0_0_3px_var(--accent-soft)]`). Using :where()
+   keeps specificity at (0,0,0) so any per-element override wins.
+   outline-offset 2px keeps the ring readable on adjacent elements;
+   modern browsers follow the element's border-radius on outline
+   automatically (no `border-radius: inherit` hack needed).
+   ----------------------------------------------------------------------- */
+:where(button, a, [role="button"], summary):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* .glow-accent — the accent-color text-shadow used on key callouts. */
+.glow-accent {
+  text-shadow: 0 0 24px var(--accent-glow);
+}
+
+/* -----------------------------------------------------------------------
+   Page-load reveal — instruments coming online. Each row sets
+   style={{ "--row-i": n }} for the staggered cascade.
+   ----------------------------------------------------------------------- */
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.row-in {
+  opacity: 0;
+  animation: row-in 320ms ease-out forwards;
+  animation-delay: calc(var(--row-i, 0) * 50ms + 60ms);
+}
+
+/* Reduced motion: skip transforms + animations, just show. */
+@media (prefers-reduced-motion: reduce) {
+  .row-in,
+  .signal-pulse,
+  .signal-ring::after {
+    opacity: 1;
+    animation: none;
+  }
+  .signal-ring::after {
+    display: none;
+  }
+}
+
+/* -----------------------------------------------------------------------
+   Selection — accent highlight at low alpha.
+   ----------------------------------------------------------------------- */
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+/* Placeholder + caret in accent for input focus polish. */
+input,
+textarea {
+  caret-color: var(--accent);
+}
+
+/* Native scrollbar in dark mode — make it disappear into the canvas. */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 9999px;
+    border: 2px solid var(--canvas);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--line-bright);
+  }
+}

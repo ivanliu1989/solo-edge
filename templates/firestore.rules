@@ -1,0 +1,177 @@
+rules_version = '2';
+// =============================================================================
+// SECURITY AUDIT SUMMARY (PR-C, 2026-05-12)
+// =============================================================================
+// Every collection used by this codebase has an explicit `match` block below.
+// No collection relies on Firestore's implicit-default deny — each surface
+// has a documented read scope and a deny-all client-write rule, so the
+// Admin SDK (running server-side without auth context) is the single
+// mutation path for everything except `users/{uid}` reads.
+//
+// Collections covered (15 total):
+//   1.  users/{userId}                                 read self / write deny
+//   2.  users/{userId}/analyses/{analysisId}           read self / write deny
+//   3.  users/.../analyses/.../llmCalls/{callId}       read self / write deny
+//   4.  users/{userId}/subscriptions/{channelId}       read self / write deny
+//   5.  users/{userId}/dailyReports/{reportDate}       read self / write deny
+//   6.  users/.../dailyReports/.../llmCalls/{callId}   read self / write deny
+//   7.  users/{userId}/actionItems/{itemId}            read self / write deny
+//   8.  channels/{channelId}                           auth read / write deny
+//   9.  videos/{youtubeVideoId}                        auth read / write deny
+//   10. transcripts/{youtubeVideoId}                   fully deny client
+//   11. mail/{id}                                      fully deny client
+//   12. rateLimits/{id}  (PR-C Task 4)                 fully deny client
+//   13. analysisOutputs/{id}                           fully deny client
+//   14. sharedReports/{token}                          fully deny client
+//   15. sharedTrends/{token}                           fully deny client
+//
+// Invariant: any new collection added to lib/firebase/repos.ts must land in
+// this file in the same change. The repos-layer chokepoint + ESLint gate on
+// @/lib/firebase/admin imports keeps the Admin-SDK-only contract enforceable.
+// =============================================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users can read/write only their own profile.
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      // Server-only writes (Admin SDK bypasses rules). emailSubscribed
+      // flips go through /api/email/subscribe; profile edits through
+      // server actions in app/(app)/settings/actions.ts; billing fields
+      // through the Stripe webhook handler. No client write path is
+      // sanctioned, so reject all of them at the rules layer.
+      allow write: if false;
+
+      // Analyses live as a subcollection per user.
+      match /analyses/{analysisId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        // Server-side only: writes happen via Admin SDK (no auth context),
+        // which bypasses these rules. Direct client writes are rejected.
+        allow write: if false;
+
+        match /llmCalls/{callId} {
+          allow read: if request.auth != null && request.auth.uid == userId;
+          allow write: if false;
+        }
+      }
+
+      // Channel subscriptions per user. Read own; client writes go through
+      // /api/subscriptions which uses the Admin SDK and validates the input
+      // (resolves the channel id). Direct client writes are rejected so we
+      // can guarantee channels/{channelId} stays in sync.
+      match /subscriptions/{channelId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      // Daily aggregated report per user. Server-only writes (the
+      // buildDailyReports cron via Admin SDK); read own.
+      match /dailyReports/{reportDate} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false;
+
+        // Per-report cost ledger — same pattern as analyses' llmCalls
+        // subcollection. Owner can read; only Admin SDK writes.
+        match /llmCalls/{callId} {
+          allow read: if request.auth != null && request.auth.uid == userId;
+          allow write: if false;
+        }
+      }
+
+      // Action items — user-curated todo list of saved trading insights.
+      // Owner can read; client writes are denied so the /api/action-items
+      // routes (Admin SDK) stay the single mutation path. Same pattern as
+      // analyses + dailyReports.
+      match /actionItems/{itemId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false;
+      }
+    }
+
+    // Shared registry of YouTube channels any user has subscribed to.
+    // Server-only via Admin SDK. Was readable by any authenticated user
+    // pre-2026-05-16 — a cross-tenant leak: every signed-in user could
+    // enumerate the full set of channels any user across the platform
+    // had ever subscribed to. The /channels page and the poll-channels
+    // cron both read this collection via the Admin SDK; no client-side
+    // path needs read access. Locked down to match the deny-all pattern
+    // used by every other server-owned collection (analyses, videos,
+    // transcripts, subscriptions, dailyReports, actionItems,
+    // analysisOutputs, sharedReports, rateLimits, mail). PR #79.
+    match /channels/{channelId} {
+      allow read, write: if false;
+    }
+
+    // Shared video metadata + transcripts are read-only to authenticated users
+    // (so they can hydrate the UI without needing a per-user copy). Writes
+    // happen only via Admin SDK from the Cloud Function / Next.js server.
+    match /videos/{youtubeVideoId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    match /transcripts/{youtubeVideoId} {
+      // Transcripts can be large; opt out of client-side reads. The dashboard
+      // doesn't surface them anyway — only the analysis output.
+      allow read, write: if false;
+    }
+
+    // Outgoing-mail queue watched by the Firebase Trigger Email
+    // extension. Each doc contains the recipient email address + the
+    // rendered email body — neither is something we want clients to
+    // read or write. The cron writes via Admin SDK (bypasses rules);
+    // the extension's runtime service account also bypasses rules.
+    // Explicit deny preserves the audit pattern of every other
+    // server-only collection above.
+    match /mail/{id} {
+      allow read, write: if false;
+    }
+
+    // Rate-limit buckets (PR-C). Server-only via Admin SDK; clients
+    // must NEVER read or write these — leaking the count enables
+    // probing the limits, and writes would let a user reset their
+    // own counter.
+    match /rateLimits/{id} {
+      allow read, write: if false;
+    }
+
+    // Cross-user shared LLM analysis output cache. Written server-side
+    // by the pipeline on terminal status (done / failed); read via the
+    // Level 1 / Level 2 cache check in lib/firebase/repos.ts and
+    // lib/pipeline/analyze-video.ts. Clients never touch this — they
+    // read their own users/{uid}/analyses/{id} doc which is
+    // pre-populated from this cache on hit. See
+    // docs/superpowers/specs/2026-05-15-cross-user-analysis-cache-design.md.
+    match /analysisOutputs/{id} {
+      allow read, write: if false;
+    }
+
+    // Public daily-report shares. The token in the path is the access
+    // credential — 12 base62 chars (71 bits of entropy) minted server-side
+    // via lib/share/token.ts. ALL operations are denied at the client
+    // SDK layer; the public share page (app/share/d/[token]/page.tsx)
+    // and OG image renderer both read via Admin SDK in
+    // lib/firebase/repos.ts getSharedReport, which applies the
+    // revokedAt-null gate server-side.
+    //
+    // Why not `allow get: if resource.data.revokedAt == null` like the
+    // prior rule? Defense-in-depth (PR #74 review §3): the doc shape
+    // carries the owner uid and reportPath. A client with a leaked
+    // token could getDoc() directly and harvest uid. Closing client
+    // reads entirely means the doc payload only ever leaves Firestore
+    // through the Admin SDK path that already de-identifies for the
+    // public page render. No client-side Firestore read of this
+    // collection exists today — keep it that way.
+    match /sharedReports/{token} {
+      allow read, write: if false;
+    }
+
+    // sharedTrends/{token} — public-share snapshot of a /history dashboard
+    // view. Same access model as sharedReports: deny all client SDK
+    // operations; the doc travels through the Admin SDK only via
+    // getSharedTrends on /share/t/<token> after the route applies the
+    // revokedAt-null gate.
+    match /sharedTrends/{token} {
+      allow read, write: if false;
+    }
+  }
+}

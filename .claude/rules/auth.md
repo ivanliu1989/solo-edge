@@ -1,0 +1,23 @@
+# Firebase Auth + Session Cookie Rules
+
+Firebase Auth in the browser → ID token → server exchange → `__session` HttpOnly cookie. The cookie is the source of truth for server-side identity.
+
+- **Two SDKs, two contexts.** `lib/firebase/client.ts` (`"use client"`) for browser auth+db. `lib/firebase/admin.ts` (`import "server-only"`) for adminAuth+adminDb. Never import either from the other context.
+- **Sign-in flow:** signIn → `cred.user.getIdToken(true)` → `POST /api/auth/session { idToken, timezone? }` → server verifies via `verifyIdToken`, calls `ensureUserDoc`, issues 7-day session cookie → `router.refresh()`.
+- **`getCurrentUser()` is the only server-side identity check.** Reads `cookies()`, runs `verifySessionCookie(cookie, checkRevoked=true)`. Wrapped in `React.cache()` so the layout pre-check + page call dedup to one verify per render.
+- **`requireAdmin()` is the admin-only gate.** Calls `getCurrentUser()`, checks email against `ADMIN_EMAILS` env allowlist. On failure: `notFound()` (404, not 403 or redirect) so the surface is invisible to enumeration. `ADMIN_EMAILS` defaults to empty (lockdown) so misconfigured prod doesn't open up.
+- **`getCurrentUserWithProfile()` adds cached profile fields** (timezone, displayName, plan, subscriptionStatus, billing fields) via one extra Firestore read on `users/{uid}`. Use on pages where these matter. Has an in-memory cache fallback for Firestore-blip resilience (Pro users don't momentarily see free-tier upgrade card during a transient outage).
+- **Sign-out is two-step.** `DELETE /api/auth/session` clears the cookie; `signOut(auth)` clears Firebase Auth IndexedDB state. Doing only one leaves a stale half-session.
+- **Sign-in posts the browser's IANA timezone.** Read via `Intl.DateTimeFormat().resolvedOptions().timeZone`. Regex-validate on server (≤64 chars, conservative IANA shape) before storing.
+- **Google sign-in falls back to redirect.** Detect `auth/popup-blocked`, `auth/cancelled-popup-request`, `auth/operation-not-supported-in-this-environment` in the catch; call `signInWithRedirect()`. A mount-time `useEffect` calls `getRedirectResult(auth)` to complete the flow on return. Safari, in-app WebViews (FB/IG/LinkedIn/iOS Mail), and aggressive popup blockers all need this.
+- **Don't capture user-mistake codes to Sentry.** `auth/wrong-password`, `auth/invalid-credential`, `auth/user-not-found`, `auth/email-already-in-use`, `auth/weak-password`, `auth/popup-closed-by-user`. Friendly UI message still appears via `friendlyAuthError(code)`.
+- **Middleware is presence-only.** Edge runtime, checks `__session` cookie presence, redirects to `/sign-in` on the auth route group. Never verifies the cookie. Real verification is `getCurrentUser()` in the matching Server Component.
+- **Security response headers attach in middleware via `applySecurityHeaders(res.headers)`.** CSP + HSTS (2-year + includeSubDomains + preload) + X-Frame-Options=DENY + X-Content-Type-Options=nosniff + Referrer-Policy + Permissions-Policy + **Cross-Origin-Opener-Policy=same-origin-allow-popups** (load-bearing for signInWithPopup — bare `same-origin` severs `window.opener.postMessage` and Firebase reports `auth/popup-closed-by-user`).
+- **CSP's `frame-src` includes `https://*.firebaseapp.com`.** signInWithPopup creates an invisible iframe at `<authDomain>/__/auth/iframe` for state coordination.
+- **Rate limiting via Firestore token buckets.** `checkRateLimit({ uid, bucket, limit })` from `lib/auth/rateLimit.ts`. State in `rateLimits/{uid}__{bucket}`. Server-only (security rules deny all client access). Lazy refill, no scheduled job. Read-decide-write wrapped in `runTransaction` so two concurrent requests at `remaining=1` don't both pass.
+- **Bucket naming convention:** route-pair sharing (POST + per-id DELETE share a bucket when cadence is symmetric); split when one is high-cadence triage (e.g. `action-items` POST at 20/min vs `action-items-mutate` PATCH/DELETE at 60/min).
+- **Don't decode `__session` yourself.** Opaque session-cookie string, not a JWT. Always `verifySessionCookie`.
+- **`ensureUserDoc` runs at session creation AND analyze time.** First-time sign-in creates `users/{uid}`; subsequent calls are no-ops. Belt + braces guards against edge cases.
+- **TTL: 7 days.** Configured in `SESSION_TTL_MS`. Must be ≤14 days per Firebase Admin's rules. Bump requires extending cookie `maxAge` in route handler too.
+- **`emailVerified` not enforced today.** If you add a verified-email gate, add it in `getCurrentUser()`, not piecemeal in Server Components.
+- **Local dev with emulators:** `FIREBASE_AUTH_EMULATOR_HOST=localhost:9099` + `FIRESTORE_EMULATOR_HOST=localhost:8080` + `firebase emulators:start --only auth,firestore`. Admin SDK auto-detects.
