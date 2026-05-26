@@ -116,11 +116,41 @@ A rule that's been mechanically enforced (by ESLint, CI, type system, runtime ch
 
 ## How to bootstrap rules in a new project
 
+The supported path is `scripts/init.sh`:
+
 ```bash
-cp -r ~/projects/atanexus/solo-edge/.claude/rules .claude/
-cp ~/projects/atanexus/solo-edge/CLAUDE.md ./
-cp ~/projects/atanexus/solo-edge/AGENTS.md ./
+/path/to/solo-edge/scripts/init.sh /path/to/new-product
 ```
+
+It handles the copy (CLAUDE.md, AGENTS.md, ARCHITECTURE.md, QUALITY_SCORE.md, `.claude/rules/`, `scripts/check-*.sh`, `templates/`), refuses to clobber existing customisations, and prints the next-steps checklist.
+
+If you want to copy manually instead (or refresh selective files), `cd` into the new project and copy from your local solo-edge checkout — substitute `$SOLO_EDGE` for wherever you cloned it. The full file set `init.sh` would have copied:
+
+```bash
+SOLO_EDGE=/path/to/your/solo-edge  # adjust to your local clone
+# Root templates (4 files)
+cp "$SOLO_EDGE/CLAUDE.md" ./
+cp "$SOLO_EDGE/AGENTS.md" ./
+cp "$SOLO_EDGE/ARCHITECTURE.md" ./
+cp "$SOLO_EDGE/QUALITY_SCORE.md" ./
+# .gitignore (merge-safe: append missing lines if you already have one)
+cp "$SOLO_EDGE/.gitignore" ./
+# Per-area rules
+mkdir -p .claude
+cp -r "$SOLO_EDGE/.claude/rules" .claude/
+# CI gates
+mkdir -p scripts
+cp "$SOLO_EDGE/scripts/check-docs-updated.sh" scripts/
+cp "$SOLO_EDGE/scripts/check-doc-content-drift.sh" scripts/
+cp "$SOLO_EDGE/scripts/check-doc-indexes.sh" scripts/
+cp "$SOLO_EDGE/scripts/check-e2e-coverage.sh" scripts/
+chmod +x scripts/check-*.sh
+# Canonical drop-in source files
+mkdir -p templates
+cp -r "$SOLO_EDGE/templates/." templates/
+```
+
+`init.sh` skips files that already exist; the manual block above does the same if you guard each `cp` with `[ ! -f target ] && cp ...`. Re-running `init.sh` is the supported way to refresh — it'll prompt before overwriting and skip per-file.
 
 Then edit:
 1. `AGENTS.md` — replace template with your project's actual directory map

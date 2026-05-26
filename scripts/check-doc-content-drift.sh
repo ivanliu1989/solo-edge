@@ -84,7 +84,7 @@ cd "$REPO_ROOT"
 # typo maybeSendDailyEmail/extra-y"). Those mentions are the audit trail,
 # not active references — flagging them would defeat the log's purpose.
 DOC_FILES=()
-for f in AGENTS.md ARCHITECTURE.md README.md; do
+for f in AGENTS.md ARCHITECTURE.md CLAUDE.md README.md; do
   [ -f "$f" ] && DOC_FILES+=("$f")
 done
 for f in .claude/rules/*.md; do
@@ -194,6 +194,8 @@ ALLOWLIST[simulationStorageKey]=1  # Removed in PR #98; docs/runbooks/launch-day
 # phrases that have actually drifted ≥2 times across entropy sweeps.
 DENIED_PHRASES=(
   "paused during beta|Stripe Checkout is live since 2026-05-16 (PR #70). Use present tense (\"live since 2026-05-16\") or past-tense narrative (\"was paused during beta freeze; exited 2026-05-16\") in a clearly-historical section.|"
+  "3 helpers in lib/firebase|Billing helpers count is FOUR, not 3: updateUserBilling (webhook), setStripeCustomerId (pre-webhook bootstrap), clearStaleStripeFields (auto-recovery), adminSetUserPlan (manual override). The 4th was added when auto-recovery shipped. Caught drifting in PR #1 of solo-edge — added here so the next drift fails CI.|"
+  "three helpers in|Billing helpers count is FOUR, not three. See \"3 helpers in lib/firebase\" entry above for the canonical list.|"
 )
 
 # Walk each doc file, extract backticked identifiers, dedup, then check.

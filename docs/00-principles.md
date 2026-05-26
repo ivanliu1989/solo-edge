@@ -22,7 +22,9 @@ The loop is described in [docs/03-shipping-loop.md](03-shipping-loop.md). Every 
 
 ## 4. Boil the lake — completeness is cheap now.
 
-AI makes completeness the cheap option. When tests, edge cases, and error paths cost 10x more than the happy path in 2020, you cut. When they cost 1.2x in 2026, you don't. Cover the whole feature, not just the demo path. (See garryslist.org/posts/boil-the-ocean.)
+AI makes completeness the cheap option. When tests, edge cases, and error paths cost 10x more than the happy path in 2020, you cut. When they cost 1.2x in 2026, you don't. Cover the whole feature, not just the demo path.
+
+The principle inverts "don't boil the ocean" (a famous warning against unbounded scope) — boil the *lake* instead, because the lake is bounded, complete, and now cheap. The source post is at [garryslist.org/posts/boil-the-ocean](https://garryslist.org/posts/boil-the-ocean) — the URL keeps the old phrase, the principle uses the new one.
 
 Exceptions: deliberate prototypes meant to be thrown away. If you're not sure whether it's a prototype, it's not — boil the lake.
 

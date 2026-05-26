@@ -2,7 +2,9 @@
 
 # Project CLAUDE.md — TEMPLATE
 
-Copy this file to the root of your new product. Edit the @AGENTS.md include and the skill-routing rules below to match your stack. Everything else stays as-is.
+> **Reading this in solo-edge?** This file is the canonical template that `scripts/init.sh` copies into new products. Edits propagate to every future bootstrap — change carefully.
+>
+> **Reading this in a new product (copied by init.sh)?** Edit the @AGENTS.md include and the skill-routing rules below to match your stack. Everything else stays as-is.
 
 ## Skill routing
 
@@ -55,7 +57,7 @@ Path-specific conventions live in [.claude/rules/](.claude/rules/) and are auto-
 
 These conventions appear in this repo because each closes a documented entropy class. Read [docs/10-entropy-defense.md](docs/10-entropy-defense.md) for the full rationale.
 
-1. **All code paths that mutate billing state go through 3 helpers in lib/firebase/repos.ts.** Inline `set()` calls on user-doc billing fields are banned. ESLint enforces.
+1. **All code paths that mutate billing state go through 4 helpers in lib/firebase/repos.ts** — `updateUserBilling` (webhook), `setStripeCustomerId` (pre-webhook bootstrap), `clearStaleStripeFields` (auto-recovery), `adminSetUserPlan` (manual override). Inline `set()` calls on user-doc billing fields are banned. ESLint enforces. See [.claude/rules/billing.md](.claude/rules/billing.md) for the full table.
 2. **All LLM calls go through `runTask()` in lib/llm/router.ts.** Direct provider SDK calls bypass cost capture + validation. ESLint enforces.
 3. **All Firestore reads/writes go through lib/firebase/repos.ts.** Server-only via Admin SDK. ESLint blocks direct admin imports outside lib/firebase/.
 4. **Behavior-bearing source edits require matching doc updates.** `scripts/check-docs-updated.sh` fails CI when source-of-truth files change without docs.

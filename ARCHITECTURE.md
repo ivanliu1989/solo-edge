@@ -1,5 +1,9 @@
 # ARCHITECTURE — TEMPLATE
 
+> **Reading this in solo-edge?** This file is the canonical ARCHITECTURE template that `scripts/init.sh` copies into new products. The illustrative blocks below use leapedge-clip as a worked example. Edit the *structure* carefully; edit the *examples* only if you have a better worked example.
+>
+> **Reading this in a new product (copied by init.sh)?** Replace the example content below with YOUR stack, YOUR data flow, YOUR auth handshake. Keep the section headings — they're the contract a future AI session reads.
+
 This is the document that explains HOW the parts fit together. AGENTS.md tells you WHAT the parts are; ARCHITECTURE.md tells you WHY they're shaped that way and how data flows between them.
 
 A new AI session should be able to read this in 5 minutes and reason correctly about:

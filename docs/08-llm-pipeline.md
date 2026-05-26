@@ -53,6 +53,9 @@ Bumping a prompt without bumping `n` overwrites the prior analysis at the same I
 
 ```typescript
 // lib/llm/router.ts
+// Example from leapedge-clip — yours will differ. Model IDs in this file drift fast
+// (providers rename and retire models constantly); the source of truth is YOUR
+// taskRouting map, not this doc.
 const taskRouting: Record<Task, { primary: ModelChoice; fallback?: ModelChoice }> = {
   keypoints: { primary: "gemini-3.1-flash-lite" },
   insights: { primary: "gemini-3.5-flash" },
@@ -62,7 +65,7 @@ const taskRouting: Record<Task, { primary: ModelChoice; fallback?: ModelChoice }
 };
 ```
 
-Flash-tier for cheap structured tasks. Pro-tier for reasoning-heavy synthesis. Update the table when a new model lands — single source of truth.
+Flash-tier for cheap structured tasks. Pro-tier for reasoning-heavy synthesis. Update the table when a new model lands — single source of truth. Model IDs in this doc will drift; trust `lib/llm/router.ts` in YOUR repo.
 
 `fallback` is supported in the router but not used in production. Cross-model redundancy adds cost and complicates cost accounting. Skip until you actually need it.
 
@@ -105,6 +108,8 @@ Every `runTask()` writes an `llmCalls` row + atomically increments the parent do
 Pricing math lives in `lib/llm/pricing.ts` per model:
 
 ```typescript
+// Prices drift; check the provider's pricing page when a model changes.
+// Wrong prices here silently undercharge or overcharge per call.
 const PRICING: Record<Model, { inputPerMillion: number; outputPerMillion: number }> = {
   "gemini-3.5-flash": { inputPerMillion: 0.30, outputPerMillion: 2.50 },
   // ...
