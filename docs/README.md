@@ -47,3 +47,7 @@ If you've internalized the ten commandments in [00-principles.md](00-principles.
 Every doc here was once a one-line note. The ones that mattered got expanded; the ones that got caught 3+ times became CI gates. If a section feels missing, that's a signal — either no one's been bitten by it yet, or it's already a mechanical gate so the doc only needs to point at the gate.
 
 See [10-entropy-defense.md](10-entropy-defense.md) for the promotion model.
+
+## Not part of the canonical 13
+
+- [launch-essay.md](launch-essay.md) — the "why this exists" piece written for the open-source launch. Read if you found this repo via HN / X / IH. Standalone artifact; not part of the numbered reference sequence.

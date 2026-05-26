@@ -58,6 +58,8 @@ examples/     reserved for anonymized real artifacts (see examples/README.md)
 
 See [docs/README.md](docs/README.md) for a by-use-case index.
 
+**One-off:** [docs/launch-essay.md](docs/launch-essay.md) — the "why this exists" piece written for the open-source launch. Read if you found this repo via HN / X / IH. Not part of the canonical 13.
+
 ### playbooks/ — read by activity
 
 | File | When to read |
