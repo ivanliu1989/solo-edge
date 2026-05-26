@@ -69,7 +69,7 @@ fi
 
 echo "Copying scripts/ (CI gates)..."
 mkdir -p scripts
-for s in check-docs-updated.sh check-doc-content-drift.sh check-e2e-coverage.sh; do
+for s in check-docs-updated.sh check-doc-content-drift.sh check-doc-indexes.sh check-e2e-coverage.sh; do
   if [ -f "scripts/$s" ]; then
     echo "  skipping scripts/$s (already exists)"
   else

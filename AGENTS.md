@@ -1,6 +1,8 @@
 # This is NOT the [framework] you know — TEMPLATE
 
-Replace `[framework]` with the framework version that requires this disclaimer (e.g. Next.js 16 — it has breaking changes from 15 that your training data may not know). The point is to tell future AI sessions to read local docs first, not rely on training memory.
+> **Reading this in solo-edge?** This file is the canonical AGENTS template that `scripts/init.sh` copies into new products. The `{project-name}` / `[framework]` / "ONE PARAGRAPH" placeholders below are intentional — they're filled in per-product.
+>
+> **Reading this in a new product (copied by init.sh)?** Replace `[framework]` with the framework version that requires this disclaimer (e.g. Next.js 16 — it has breaking changes from 15 that your training data may not know). The point is to tell future AI sessions to read local docs first, not rely on training memory.
 
 # {project-name}
 
@@ -40,7 +42,7 @@ The hard list. Every convention here closes a known entropy class. Each entry is
 - **Prompt changes bump versions.** Prompts live at `lib/llm/prompts/{task}/v{n}.ts`. The composite version becomes part of the Firestore doc ID — bumping a prompt without bumping `n` would overwrite the prior analysis.
 - **All LLM calls go through `runTask()`.** Enforced by ESLint: `@google/genai` may only be imported inside `lib/llm/providers/`.
 - **All Stripe SDK imports go through `lib/billing/`.** Enforced by ESLint.
-- **All billing state writes go through THREE helpers in `lib/firebase/repos.ts`**, split on purpose: webhook write, pre-webhook bootstrap, manual override. Never reach for `userDoc(uid).set()` on billing fields directly.
+- **All billing state writes go through FOUR helpers in `lib/firebase/repos.ts`**, split on purpose: webhook write (`updateUserBilling`), pre-webhook bootstrap (`setStripeCustomerId`), auto-recovery clear (`clearStaleStripeFields`), manual override (`adminSetUserPlan`). Never reach for `userDoc(uid).set()` on billing fields directly.
 - **Pro-only feature gates go through `getUserEntitlement()`.** No inline `user.plan === "pro"` for capability gating.
 - **All Firestore reads and writes go through `lib/firebase/repos.ts`.** Enforced by ESLint.
 - **Server-only modules import `"server-only"`.** Anything that touches firebase-admin must never enter a client bundle.
@@ -53,11 +55,11 @@ The hard list. Every convention here closes a known entropy class. Each entry is
 
 State carries across context windows via:
 
-- [feature_list.json](feature_list.json) — Scope contract. AI may only modify the `passes` field.
-- [claude-progress.txt](claude-progress.txt) — Running session log: activity, known issues, next steps.
-- [init.sh](init.sh) — Dev environment startup.
+- `feature_list.json` (optional) — Scope contract you maintain by hand. AI may only modify the `passes` field. Seed it on day one if your product has more than ~5 in-flight features.
+- `claude-progress.txt` (optional) — Running session log: activity, known issues, next steps. Useful when you're context-switching daily.
+- `init.sh` (per-project) — Dev environment startup script you write for your stack (`pnpm dev`, emulators, etc.). Not the same as `solo-edge/scripts/init.sh` which bootstraps a new project from this template.
 
-Use `/context-save` at session end, `/context-restore` at the start of the next.
+Use `/context-save` at session end, `/context-restore` at the start of the next — these are the primary state-carrier; the two `.json`/`.txt` files above are belt-and-braces for longer arcs.
 
 ## Deeper Context
 

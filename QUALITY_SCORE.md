@@ -1,8 +1,12 @@
 # QUALITY_SCORE — Session log
 
+> **Reading this in solo-edge?** This file is the canonical empty-log template that `scripts/init.sh` copies into new products. The Standing Gates tables below ship with the gates already wired by solo-edge — leave them. The Session log starts empty.
+>
+> **Reading this in a new product (copied by init.sh)?** Treat as your project's running entropy memory — add session entries as you ship.
+
 This file is your **entropy defense memory**. Every session that catches a structural issue (not just a bug — a *pattern* that could happen again) gets a numbered entry. Future sessions read this to avoid re-catching the same thing.
 
-> The Sessions 4-11 entropy scans on leapedge-clip caught the same "code clean, docs lag" pattern six times. After Session 11 we promoted that pattern to a CI gate (`check-docs-updated.sh`). That's the point of this file: turn repeated catches into mechanical enforcement.
+> **Worked example (from solo-edge's origin product, leapedge-clip):** Sessions 4-11 caught the same "code clean, docs lag" pattern six times. After Session 11 it was promoted to a CI gate (`check-docs-updated.sh`) — that's the point of this file: turn repeated catches into mechanical enforcement. Replace this paragraph with your own first catch when you have one.
 
 ## How to use this
 
@@ -32,6 +36,7 @@ Each gate represents a pattern that was caught 3+ times before being promoted.
 |------|--------|--------------|
 | Source-to-doc | `scripts/check-docs-updated.sh` | Code changes that don't update AGENTS.md / .claude/rules / ARCHITECTURE.md |
 | Doc-drift | `scripts/check-doc-content-drift.sh` | Docs reference symbols that don't exist (typo drift) + prose mentions past-state behavior |
+| Doc-index integrity | `scripts/check-doc-indexes.sh` | New doc or playbook added without updating README.md / docs/README.md / playbooks/README.md indexes |
 | E2E coverage | `scripts/check-e2e-coverage.sh` | Pro-gated flows shipped without Playwright specs |
 
 ## Standing in-code gates

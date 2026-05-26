@@ -11,20 +11,52 @@ You're one person. You're building a real product (paying users, real money, rea
 ## What's in the box
 
 ```
-docs/         13 playbook docs — start with 00-principles.md
-.claude/      project-CLAUDE.md template + 10 per-area rules
-scripts/      setup.sh (machine bootstrap), init.sh (project bootstrap), 3 CI gates
-templates/    canonical files (globals.css, middleware.ts, security-headers.ts, eslint.config.mjs, firestore.rules)
-playbooks/    7 daily-routine docs (solo-day, feature-from-scratch, pr-review-army, design-polish-pass, billing-launch, launch-day, stuck-debugging)
-examples/     (empty) — drop real artifacts here so the next agent learns from real, not synthetic
+docs/         13 reference docs — start with 00-principles.md, then follow the "Read next" chain
+playbooks/    7 daily-routine playbooks — pick by what you're doing today
+.claude/      project-CLAUDE.md template + 10 per-area rules (auto-surfaced when you touch matching paths)
+scripts/      setup.sh (machine bootstrap), init.sh (project bootstrap), 4 doc/coverage CI gates
+templates/    5 canonical drop-in files (globals.css, middleware.ts, security-headers.ts, eslint.config.mjs, firestore.rules)
+examples/     reserved for anonymized real artifacts (see examples/README.md)
 ```
+
+### docs/ — read by purpose
+
+| # | Title | When to read |
+|---|-------|--------------|
+| [00](docs/00-principles.md) | Principles | First. The ten commandments of solo AI building. |
+| [01](docs/01-claude-code-setup.md) | Claude Code setup | Once per machine. |
+| [02](docs/02-skills-routing.md) | Skills routing | Once per new project. |
+| [03](docs/03-shipping-loop.md) | The shipping loop | Memorize. `/office-hours` → `/autoplan` → code → `/ship`. |
+| [04](docs/04-design-system.md) | Design system | Before writing any UI. |
+| [05](docs/05-qa-workflow.md) | QA workflow | Before writing your first test. |
+| [06](docs/06-marketing-surfaces.md) | Marketing surfaces | When building landing / pricing / FAQ. |
+| [07](docs/07-billing-patterns.md) | Billing (Stripe) | When adding paid tiers. |
+| [08](docs/08-llm-pipeline.md) | LLM pipeline | When adding model calls. |
+| [09](docs/09-observability.md) | Observability | Before paying users. |
+| [10](docs/10-entropy-defense.md) | Entropy defense | The most important doc. Read at month 1 + 3 + 6. |
+| [11](docs/11-multi-pr-stacking.md) | Multi-PR stacking | When you've stacked PRs and one merged onto stale base. |
+| [12](docs/12-incident-response.md) | Incident response | Before launch + every 3am page. |
+
+See [docs/README.md](docs/README.md) for a by-use-case index.
+
+### playbooks/ — read by activity
+
+| File | When to read |
+|------|--------------|
+| [solo-day.md](playbooks/solo-day.md) | Daily — what a productive session looks like. |
+| [feature-from-scratch.md](playbooks/feature-from-scratch.md) | When you're about to start a new feature. |
+| [pr-review-army.md](playbooks/pr-review-army.md) | When `/ship`'s multi-agent review fires findings. |
+| [design-polish-pass.md](playbooks/design-polish-pass.md) | After every major UI launch. |
+| [billing-launch.md](playbooks/billing-launch.md) | Pre-launch Stripe rollout. |
+| [launch-day.md](playbooks/launch-day.md) | T-14 days through T+72 hours of going public. |
+| [stuck-debugging.md](playbooks/stuck-debugging.md) | When you're an hour in and the bug hasn't moved. |
 
 ## The 60-second tour
 
 1. **Set up Claude Code once per machine.** Run `bash scripts/setup.sh` — installs Claude Code (if missing), gstack + superpowers skill ecosystems, and the global `~/.claude/CLAUDE.md` safety rules. Idempotent. See [docs/01-claude-code-setup.md](docs/01-claude-code-setup.md) for the manual version.
 2. **For each new product, copy.** Run `./scripts/init.sh /path/to/new-product`. Drops in `CLAUDE.md`, `AGENTS.md`, `ARCHITECTURE.md`, `QUALITY_SCORE.md`, `.claude/rules/*`, `scripts/*`, `templates/*`. Then fill in the templates.
 3. **Build via the shipping loop.** `/office-hours` for ideas → `/autoplan` for plans → code → `/ship` for PRs. See [docs/03-shipping-loop.md](docs/03-shipping-loop.md).
-4. **Defend against entropy.** Wire the 4 CI gates from day one. Each one closes a known entropy class. See [docs/10-entropy-defense.md](docs/10-entropy-defense.md).
+4. **Defend against entropy.** Wire the 5 gates from day one (4 bash CI scripts + 1 in-code Vitest test). Each one closes a known entropy class. See [docs/10-entropy-defense.md](docs/10-entropy-defense.md).
 5. **Polish before launch.** Run `/design-review` post-implementation. Then ship the polish PR. See [playbooks/design-polish-pass.md](playbooks/design-polish-pass.md).
 6. **Launch in public.** PH + X + first 72h handling. See [playbooks/launch-day.md](playbooks/launch-day.md).
 

@@ -12,13 +12,18 @@ After six months, the docs don't match the code. The next AI session reads the (
 
 The leapedge-clip Sessions 4-11 entropy scans caught the same "code clean, docs lag" pattern six times before promotion to a CI gate. Then it stopped happening, because the gate fires automatically.
 
-## The four CI gates
+## The five CI gates
+
+(4 bash scripts + 1 in-code vitest test.)
 
 ### 1. Source-to-doc updates (L3)
 
 `scripts/check-docs-updated.sh` — fails CI when behavior-bearing source files change without matching doc updates.
 
 ```bash
+# Example from leapedge-clip — yours will differ.
+# Start with a minimal 2-3 rule baseline, add rows as you catch
+# "I changed X but forgot Y" patterns. Three catches = permanent row.
 declare -a RULES=(
   'lib/firebase/types\.ts|ARCHITECTURE.md|.claude/rules/firestore.md|AGENTS.md'
   'lib/firebase/repos\.ts|.claude/rules/firestore.md|AGENTS.md'
@@ -34,7 +39,7 @@ declare -a RULES=(
 )
 ```
 
-Each row: source pattern → list of docs (any one must also change).
+Each row: source pattern → list of docs (any one must also change). The shipped `scripts/check-docs-updated.sh` carries the leapedge rows above — trim to match your stack before relying on it.
 
 **Escape hatch:** `[skip docs]` in the commit message — for class-only changes, comment fixes, type renames. Use sparingly.
 
@@ -48,9 +53,12 @@ Catches:
 - Single-letter typo drift (`getUserDOcOrNull` vs `getUserDocOrNull`)
 - Stale-rename leftovers (function renamed in code, doc still names the old version)
 
-(b) **Prose-mention drift** — phrases in a `DENIED_PHRASES` list fail when found in current-tense prose. The initial member encodes the recurring beta-freeze-era prose that 3 consecutive entropy sweeps flagged.
+(b) **Prose-mention drift** — phrases in a `DENIED_PHRASES` list fail when found in current-tense prose. Seed it with phrases YOUR project keeps mistakenly using in present tense after the state has moved on.
 
 ```bash
+# Example from leapedge-clip — replace with phrases that bite YOUR docs.
+# leapedge-clip's beta freeze ended; the phrase kept reappearing in 3 consecutive
+# entropy sweeps before getting promoted to this list.
 DENIED_PHRASES=(
   "beta freeze is currently in effect"  # past-tense state described as current
   # Add new denied phrases here when the same prose-drift pattern is caught 3+ times
@@ -59,7 +67,13 @@ DENIED_PHRASES=(
 
 Local `pnpm doc:drift` runs warn-only for the dev loop. CI invokes `--strict` and blocks the PR.
 
-### 3. E2E spec presence
+### 3. Doc-index integrity
+
+`scripts/check-doc-indexes.sh` — fails CI when a file in `docs/` or `playbooks/` exists on disk but is missing from the required README indexes (`README.md`, `docs/README.md`, `playbooks/README.md`). Closes the rot class where you add `docs/14-monitoring.md` and forget to update 1-3 indexes.
+
+Posture: BLOCKING. Cost: ~30 lines of bash, ~50ms per run.
+
+### 4. E2E spec presence
 
 `scripts/check-e2e-coverage.sh` — fails CI when a required Playwright spec is missing.
 
@@ -75,7 +89,7 @@ Presence-only (CI doesn't execute the suite — needs browser install). Run loca
 
 **Escape hatch:** `[skip e2e]` in the commit message — only for emergency hotfixes that can't wait for a new spec.
 
-### 4. Firestore index manifest
+### 5. Firestore index manifest
 
 `lib/firebase/index-manifest.test.ts` (Vitest, not bash) — asserts bidirectional containment between:
 

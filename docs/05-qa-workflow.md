@@ -67,6 +67,8 @@ it("redirects to /settings?saved=profile on success", async () => {
 The CI script `scripts/check-e2e-coverage.sh` fails the PR when required specs are missing. The list of required specs is hardcoded in the script.
 
 ```bash
+# Example from leapedge-clip — replace with YOUR gated user flows.
+# The principle: every Pro-only or paid-tier-gated surface gets a spec.
 REQUIRED=(
   "e2e/pricing.spec.ts"
   "e2e/today-gate.spec.ts"
