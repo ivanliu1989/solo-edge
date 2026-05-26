@@ -4,6 +4,8 @@ The opinionated solo-builder playbook for shipping high-quality AI-native produc
 
 If you ship with Claude Code / Cursor / Aider doing 60%+ of the keystrokes, this is the harness your AI fleet needs to not drift across sessions, months, and model upgrades.
 
+> **Day-1 receipt.** PR #34 to leapedge-clip shipped a Firestore aggregation query without the matching composite index. Every `/api/analyze` on production returned HTTP 500 for ~30 minutes before the log dive surfaced `FAILED_PRECONDITION`. The rule existed in `.claude/rules/firestore.md` — nothing enforced it. After that incident, every composite query gets a `REQUIRED_INDEXES` row in a bidirectional containment test that fails CI on missing or dead indexes. → Full incident log: **[RECEIPTS.md](RECEIPTS.md)** (8 incidents, 8 conventions, 8 lessons).
+
 This is not a starter template you `npx create` from. It's a **distilled set of conventions, scripts, and skill-routing rules** that I copy into every new product — so a fresh repo on day one already has the entropy defenses, design discipline, and shipping loop I'd otherwise re-invent in week six.
 
 ## Quickstart
@@ -15,6 +17,8 @@ cd ~/code/my-product && cat CLAUDE.md
 ```
 
 That's it. Open Claude Code in `~/code/my-product` and the conventions auto-surface as you work.
+
+**Read first:** [RECEIPTS.md](RECEIPTS.md) — the 8 specific incidents from leapedge-clip that birthed the conventions in this repo. Decide whether the failure modes resonate before you commit to the playbook.
 
 ## Prerequisites
 
