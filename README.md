@@ -1,10 +1,31 @@
 # solo-edge
 
-The opinionated solo-builder playbook for shipping high-quality AI-native products with Claude Code.
+[![License: MIT](https://img.shields.io/github/license/ivanliu1989/solo-edge?color=brightgreen)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/ivanliu1989/solo-edge)](https://github.com/ivanliu1989/solo-edge/commits/main)
+[![Stars](https://img.shields.io/github/stars/ivanliu1989/solo-edge?style=social)](https://github.com/ivanliu1989/solo-edge/stargazers)
+[![Built with Claude Code](https://img.shields.io/badge/built%20with-Claude%20Code-blueviolet)](https://claude.com/claude-code)
+
+**The AI-fleet harness for solo builders shipping with Claude Code.** 5 CI gates, 8 production receipts, distilled from a real product at [leapedge.app](https://leapedge.app).
 
 If you ship with Claude Code / Cursor / Aider doing 60%+ of the keystrokes, this is the harness your AI fleet needs to not drift across sessions, months, and model upgrades.
 
 > **Day-1 receipt.** PR #34 to leapedge-clip shipped a Firestore aggregation query without the matching composite index. Every `/api/analyze` on production returned HTTP 500 for ~30 minutes before the log dive surfaced `FAILED_PRECONDITION`. The rule existed in `.claude/rules/firestore.md` — nothing enforced it. After that incident, every composite query gets a `REQUIRED_INDEXES` row in a bidirectional containment test that fails CI on missing or dead indexes. → Full incident log: **[RECEIPTS.md](RECEIPTS.md)** (8 incidents, 8 conventions, 8 lessons).
+
+## How it works
+
+```mermaid
+flowchart LR
+    A[Specific prod<br/>incident] --> B[Caught 1x<br/>note in PR]
+    B --> C[Caught 2x<br/>QUALITY_SCORE entry]
+    C --> D[Caught 3+x<br/>promote to mechanical gate]
+    D --> E[5 CI gates<br/>+ 3 ESLint chokepoints]
+    E --> F[Every new project<br/>via init.sh]
+    style D fill:#cfc,stroke:#080
+    style E fill:#cfc,stroke:#080
+    style F fill:#cfc,stroke:#080
+```
+
+The compounding model: catch a class of bug three times across separate sessions → promote it to a mechanical CI gate. Each new project bootstrapped via `init.sh` ships with all the gates wired on day one. The receipts at [RECEIPTS.md](RECEIPTS.md) document which specific incident birthed each gate.
 
 This is not a starter template you `npx create` from. It's a **distilled set of conventions, scripts, and skill-routing rules** that I copy into every new product — so a fresh repo on day one already has the entropy defenses, design discipline, and shipping loop I'd otherwise re-invent in week six.
 
@@ -19,6 +40,8 @@ cd ~/code/my-product && cat CLAUDE.md
 That's it. Open Claude Code in `~/code/my-product` and the conventions auto-surface as you work.
 
 **Read first:** [RECEIPTS.md](RECEIPTS.md) — the 8 specific incidents from leapedge-clip that birthed the conventions in this repo. Decide whether the failure modes resonate before you commit to the playbook.
+
+> **TL;DR gist** (shareable standalone): [gist.github.com/ivanliu1989/640f34c1acb165105d339c9057e9fcaa](https://gist.github.com/ivanliu1989/640f34c1acb165105d339c9057e9fcaa) — same 8 receipts in tweet-length cards, one per receipt. Forkable on its own.
 
 ## Prerequisites
 
