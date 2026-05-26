@@ -2,7 +2,26 @@
 
 The opinionated solo-builder playbook for shipping high-quality AI-native products with Claude Code.
 
+If you ship with Claude Code / Cursor / Aider doing 60%+ of the keystrokes, this is the harness your AI fleet needs to not drift across sessions, months, and model upgrades.
+
 This is not a starter template you `npx create` from. It's a **distilled set of conventions, scripts, and skill-routing rules** that I copy into every new product — so a fresh repo on day one already has the entropy defenses, design discipline, and shipping loop I'd otherwise re-invent in week six.
+
+## Quickstart
+
+```bash
+git clone https://github.com/ivanliu1989/solo-edge ~/.solo-edge
+~/.solo-edge/scripts/init.sh ~/code/my-product
+cd ~/code/my-product && cat CLAUDE.md
+```
+
+That's it. Open Claude Code in `~/code/my-product` and the conventions auto-surface as you work.
+
+## Prerequisites
+
+- **macOS or Linux** (Windows: WSL2 works; native Windows untested)
+- **bash 4+** (macOS ships 3.2 by default; `brew install bash` for 5.x)
+- **git**
+- **Claude Code CLI** — install via `bash scripts/setup.sh` (one-shot) or follow [docs/01-claude-code-setup.md](docs/01-claude-code-setup.md)
 
 ## Who this is for
 

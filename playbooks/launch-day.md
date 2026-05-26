@@ -144,6 +144,7 @@ What you're watching:
 - **Cloud Functions logs** — daily-digest cron firing? LLM cost trending? Anything in red?
 - **GA4** — `checkout_started` → `checkout_completed` conversion. If <40%, your pricing-to-Checkout flow has friction. Bookmark for post-launch fix.
 - **Twitter notifications** — every reply to your thread is a potential conversation. People who reply at hour 6 are real users, not pre-warmed friends.
+- **GitHub traffic referrers** (open-source launches) — at T+24h, screenshot `github.com/<org>/<repo>/graphs/traffic` for HN inbound, X redirect counts, and any unexpected referrers (newsletter / Bluesky / Mastodon mentions you didn't seed). The referrer breakdown is the closest thing to ground truth for "where did the launch actually land." Capture in the retrospective so the next launch can pre-warm those channels deliberately.
 
 Patterns to act on:
 
